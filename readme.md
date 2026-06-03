@@ -2,8 +2,8 @@
 toward a GenAI dev role. Follow along."
 
 "There are two branches in it
-1st- Main
+1st- Main\n
 2nd - Basic
 
-Main contains the information about the repository
+Main contains the information about the repository\n
 Basic contains the code and the progress i am making towards a  GenAI dev role"
