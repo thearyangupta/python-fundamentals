@@ -1,0 +1,4 @@
+hello my name is aryan
+i am currently learning python fundamentals
+i am learning it to be a gen-ai developer
+thankyou
