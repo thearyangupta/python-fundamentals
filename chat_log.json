@@ -1,1 +1,26 @@
-[{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi there! How can I help you?"}, {"role": "user", "content": "Tell me about yourself"}, {"role": "assistant", "content": "my name is aryan and i am preparting to be a genai developer"}]
+[
+    {
+        "role": "user",
+        "content": "yes"
+    },
+    {
+        "role": "assistant",
+        "content": "(placeholder responds to yes with 1 message in history )"
+    },
+    {
+        "role": "user",
+        "content": "hello"
+    },
+    {
+        "role": "assistant",
+        "content": "(placeholder responds to hello with 3 message in history )"
+    },
+    {
+        "role": "user",
+        "content": "what to do"
+    },
+    {
+        "role": "assistant",
+        "content": "(placeholder responds to what to do with 5 message in history )"
+    }
+]
