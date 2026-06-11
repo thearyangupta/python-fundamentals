@@ -11,8 +11,8 @@ model = genai.GenerativeModel("models/gemini-2.5-flash")
 
 
 def generate_response(user_msg, history):
-    response = model.generate_content(user_msg)
-    return response.text
+    response = model.generate_content(user_msg)  #Only sends the latest message.So Gemini forgets previous messages.
+    return response.text # this is for returning the ai answer
 
 def save_conversation(conversation, filename="chat_log.json"):
     with open(filename, "w") as f:
