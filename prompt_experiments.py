@@ -1,65 +1,121 @@
 import os
+import json
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
-
+import google.generativeai as genai
 load_dotenv()
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-# =====================================================================
-# METHOD 1: FEW-SHOT PROMPTING (Standardizing Ticket Categorization)
-# =====================================================================
-FEW_SHOT_PROMPT = """
-You are a backend database classifier. Categorize the difficulty of the input question into exactly one of three strings: [EASY, MEDIUM, HARD]. Do not return any prose, markdown formatting, or sentences.
+def test_few_shot():
+    prompt = """
+Here are examples:
 
-Examples:
 Q: What is 2+2?
-Difficulty: EASY
+Difficulty: easy
 
-Q: Solve for x: x^2 - 4 = 0
-Difficulty: MEDIUM
+Q: Solve x^2 - 4 = 0
+Difficulty: medium
 
-Q: Derive the mathematical proof for the Pythagorean theorem.
-Difficulty: HARD
+Q: Prove the Pythagoras theorem
+Difficulty: hard
 
-Now classify this target:
-Q: Calculate the derivative of f(x) = 3x^2 + 5x - 2
-Difficulty:"""
+Now categorize:
 
-def classify_ticket():
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=FEW_SHOT_PROMPT
-    )
-    print("--- Few-Shot Structural Output ---")
-    print(f"Classification Result: {response.text.strip()}\n")
-
-
-# =====================================================================
-# METHOD 2: CHAIN-OF-THOUGHT (Complex Train Physics Problem)
-# =====================================================================
-COT_PROMPT = """
-Two trains, A and B, are 420 km apart. Train A leaves Mumbai at 3:00 PM travelling east at 60 km/h. 
-Train B leaves Delhi at 5:00 PM travelling west towards Mumbai at 80 km/h. 
-At what exact time will the two trains pass each other?
-
-Let's think step by step:
-1. Establish the state of the system at 5:00 PM (when both trains are finally moving).
-2. Calculate the remaining distance between them at 5:00 PM.
-3. Determine their relative closing speed.
-4. Solve for time elapsed after 5:00 PM and calculate the final clock time.
+Q: What is the capital of France?
+Difficulty:
 """
 
-def solve_complex_problem():
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=COT_PROMPT
-    )
-    print("--- Chain-of-Thought Reasoning Output ---")
+    response = model.generate_content(prompt)
+
+    print("\n=== FEW SHOT OUTPUT ===")
     print(response.text)
+
+def test_chain_of_thought():
+    prompt = """
+If train A leaves Mumbai at 3pm at 60 kmph and train B leaves Delhi at
+5pm at 80 kmph going opposite directions, when do they meet?
+
+Let's think step by step:
+1. Identify the distance
+2. Calculate travel distances
+3. Form an equation
+4. Solve
+"""
+
+    response = model.generate_content(prompt)
+
+    print("\n=== CHAIN OF THOUGHT OUTPUT ===")
+    print(response.text)
+
+PROMPT_EXTRACT = """
+Given an exam question, extract structured information.
+
+Return ONLY valid JSON.
+
+{
+    "topic": "string",
+    "subtopic": "string",
+    "difficulty": "easy | medium | hard",
+    "estimated_time_seconds": integer,
+    "exam_relevance": ["SSC", "UPSC", "Banking"]
+}
+
+Question to analyze:
+"""
+
+
+def analyze_question(question_text):
+    full_prompt = PROMPT_EXTRACT + question_text
+    response = model.generate_content(full_prompt)
+    raw = response.text.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+        raw = raw.strip()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return {
+            "error": "Could not parse JSON",
+            "raw_response": raw
+        }
+    
+def test_temperature():
+    prompt = "Write a short story about an AI helping a student."
+
+    print("\n=== TEMPERATURE 0.0 ===")
+
+    response = model.generate_content(prompt,
+            generation_config=genai.types.GenerationConfig(
+            temperature=0.0,
+            max_output_tokens=200
+        )
+    )
+    print(response.text)
+    print("\n=== TEMPERATURE 0.7 ===")
+    response = model.generate_content(
+        prompt,
+        generation_config=genai.types.GenerationConfig(
+            temperature=0.7,
+            max_output_tokens=200
+        )
+    )
+    print(response.text)
+
+def main():
+    print("=" * 50)
+    print("DAY 5 - PROMPT ENGINEERING EXPERIMENTS")
+    print("=" * 50)
+    test_few_shot()
+    test_chain_of_thought()
+    result = analyze_question(
+        "Who was the first President of India?"
+    )
+    print("\n=== JSON EXTRACTION OUTPUT ===")
+    print(json.dumps(result, indent=2))
+    test_temperature()
 
 
 if __name__ == "__main__":
-    classify_ticket()
-    print("=" * 60 + "\n")
-    solve_complex_problem()
+    main()
