@@ -1,5 +1,5 @@
 "My Python learning journey, May 2026.CS student in India, building
-towards a GenAI dev role. Follow along."
+towards a GenAI dev role. Follow along"
 
 "There are two branches in it
 1st- Main,
